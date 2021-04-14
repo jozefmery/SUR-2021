@@ -5,6 +5,7 @@ bin/
 lib/
 Lib/
 Scripts/
+pyvenv.cfg
 
 # cache
 **/__pycache__/
