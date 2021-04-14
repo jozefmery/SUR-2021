@@ -3,6 +3,8 @@ Pipfile.lock
 # virtualenv items
 bin/
 lib/
+Lib/
+Scripts/
 
 # cache
 **/__pycache__/
