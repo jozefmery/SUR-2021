@@ -1,1 +1,8 @@
 Pipfile.lock
+
+# virtualenv items
+bin/
+lib/
+
+# cache
+**/__pycache__/
