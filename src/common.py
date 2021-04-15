@@ -3,7 +3,7 @@ import logging as log
 
 # call before importing tf or keras
 def shut_up_tensorflow_thanks():
-  set_tf_loglevel(log.FATAL)
+  set_tf_loglevel(log.WARNING)
 
 def set_tf_loglevel(level):
 
