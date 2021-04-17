@@ -16,8 +16,8 @@ FACE = "png"
 def load_img(path: str) -> np.ndarray:
     return np.asarray(PIL.Image.open(path).resize((160, 160)))
 
-def load_rec(path: str) -> np.ndarray:
-    return np.asarray(scipy.io.wavfile.read(path)[1])
+def load_rec(path: str):
+    return scipy.io.wavfile.read(path)
 
 def load_data(path: str, ext: str, with_target: bool=True) -> tuple:
     classes = glob.glob(path + "*")
@@ -28,22 +28,18 @@ def load_data(path: str, ext: str, with_target: bool=True) -> tuple:
         sessions = []
         index = 0
     for c in classes:
-        cls = {"data": [], "target": [], "session": []}
         for obj in glob.glob(c + "/*." + ext):
             
             if ext == "png":
-                cls["data"].append(load_img(obj))
+                data.append(load_img(obj))
             elif ext == "wav":
-                cls["data"].append(load_rec(obj))
+                data.append(load_rec(obj))
 
             if with_target:
-                cls["target"].append(index)
-                cls["session"].append(obj[len(c) + 6:len(c) + 8])
+                targets.append(index)
+                sessions.append(obj[len(c) + 6:len(c) + 8])
 
-        data.append(cls["data"])
         if with_target:
-            targets.append(cls["target"])
-            sessions.append(cls["session"])
             index += 1
 
     if with_target:

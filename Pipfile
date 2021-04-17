@@ -10,7 +10,8 @@ numpy = "*"
 scipy = "*"
 keras = "*"
 pillow = "*"
-tensorflow = "*"
+librosa = "*"
+tensorflow= "*"
 
 [requires]
 python_version = "3.6"
