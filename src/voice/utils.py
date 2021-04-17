@@ -35,6 +35,5 @@ def convert(data_type: int=dataloader.TRAIN_DIR):
         print(i, "/", len(data))
 
 
-
-
-convert(dataloader.TRAIN_DIR)
+if __name__ == "__main__":
+    convert(dataloader.TRAIN_DIR)
