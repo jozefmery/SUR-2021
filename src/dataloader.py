@@ -12,12 +12,17 @@ TRAIN_DIR = BASE_DIR + "train/"
 REC = "wav"
 FACE = "png"
 
+TRAIN_VOICE_NPY = "data/voice/train/"
+DEV_VOICE_NPY = "data/voice/dev/"
+
 
 def load_img(path: str) -> np.ndarray:
     return np.asarray(PIL.Image.open(path).resize((160, 160)))
 
+
 def load_rec(path: str):
     return scipy.io.wavfile.read(path)
+
 
 def load_data(path: str, ext: str, with_target: bool=True) -> tuple:
     classes = glob.glob(path + "*")
@@ -48,5 +53,14 @@ def load_data(path: str, ext: str, with_target: bool=True) -> tuple:
         return data
 
 
+def load_npy(path: str) -> np.ndarray:
+    data = []
+    for file in glob.glob(path + "*"):
+        data.append(np.load(file))
+
+    return np.asarray(data)
+
+
 if __name__ == "__main__":
-    load_data(TRAIN_DIR, REC)
+    #load_data(TRAIN_DIR, REC)
+    load_npy(TRAIN_VOICE_NPY)
