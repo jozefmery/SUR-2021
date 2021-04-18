@@ -26,15 +26,18 @@ def load_rec(path: str):
 
 def load_data(path: str, ext: str, with_target: bool=True) -> tuple:
     classes = glob.glob(path + "*")
+    classes2 = glob.glob(DEV_DIR + "*")
     
     data = []
     if with_target:
         targets = []
         sessions = []
         index = 0
-    for c in classes:
-        for obj in glob.glob(c + "/*." + ext):
+    for c, c2 in zip(classes, classes2):
+        for obj, obj2 in zip(glob.glob(c + "/*." + ext), glob.glob(c2 + "/*.wav")):
             
+            print(obj, "==", obj2)
+
             if ext == "png":
                 data.append(load_img(obj))
             elif ext == "wav":
@@ -62,5 +65,5 @@ def load_npy(path: str) -> np.ndarray:
 
 
 if __name__ == "__main__":
-    #load_data(TRAIN_DIR, REC)
-    load_npy(TRAIN_VOICE_NPY)
+    load_data(TRAIN_DIR, REC)
+    #load_npy(TRAIN_VOICE_NPY)

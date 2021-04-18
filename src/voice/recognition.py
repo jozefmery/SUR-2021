@@ -1,7 +1,7 @@
 
 import numpy as np
 import keras
-from keras.layers import Dense, Dropout, Activation, Flatten
+from keras.layers import Dense, Dropout
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from sklearn.preprocessing import LabelEncoder
 from keras.utils.np_utils import to_categorical
@@ -12,7 +12,7 @@ import utils
 
 
 class Model(keras.models.Sequential):
-    def __init__(self, inputs: tuple, outputs: int):
+    def __init__(self, inputs: tuple, num_labels: int):
         super(Model, self).__init__()
         self.add(Dense(inputs[0], input_shape=inputs, activation = 'relu'))
         self.add(Dropout(0.1))
@@ -20,11 +20,14 @@ class Model(keras.models.Sequential):
         self.add(Dropout(0.25))
         self.add(Dense(128, activation = 'relu'))
         self.add(Dropout(0.5))
-        self.add(Dense(outputs, activation = 'softmax'))
-        self.compile(loss='categorical_crossentropy', metrics=['accuracy'], optimizer='adam')        
+        self.add(Dense(num_labels, activation = 'softmax'))
+        self.compile(loss='categorical_crossentropy', metrics=['accuracy'], optimizer='adam')
 
 
-model = Model((193,), 31)
+model = Model((193,1), num_labels=31)
+
+print(model.summary())
+
 train_data, train_target = utils.load_train_data()
 dev_data, dev_target = utils.load_dev_data()
 
@@ -38,7 +41,7 @@ train_data = ss.fit_transform(train_data)
 dev_data = ss.transform(dev_data)
 
 early_stop = EarlyStopping(monitor='val_loss', min_delta=0, patience=100, verbose=1, mode='auto')
-mcp_save = ModelCheckpoint('model/voice/model_wts.hdf5', save_best_only=True, monitor='val_loss', mode='min')
+mcp_save = ModelCheckpoint('model/voice/speechnet.hdf5', save_best_only=True, monitor='val_loss', mode='min')
 history = model.fit(
     train_data, train_target,
     batch_size=32, epochs=200,
