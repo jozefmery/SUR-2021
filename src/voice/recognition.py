@@ -24,7 +24,7 @@ class Model(keras.models.Sequential):
         self.compile(loss='categorical_crossentropy', metrics=['accuracy'], optimizer='adam')
 
 
-model = Model((193,1), num_labels=31)
+model = Model((193,), num_labels=31)
 
 print(model.summary())
 
