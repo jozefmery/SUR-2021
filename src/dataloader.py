@@ -1,3 +1,4 @@
+import os
 import glob
 import PIL.Image
 import scipy.io.wavfile
@@ -12,8 +13,11 @@ TRAIN_DIR = BASE_DIR + "train/"
 REC = "wav"
 FACE = "png"
 
-TRAIN_VOICE_NPY = "data/voice/train/"
-DEV_VOICE_NPY = "data/voice/dev/"
+SIGNAL_TRAIN_VOICE = "data/voice/signal/train/"
+SIGNAL_DEV_VOICE = "data/voice/signal/dev/"
+
+SPECTOG_TRAIN_VOICE = "data/voice/spectogram/train/"
+SPECTOG_DEV_VOICE = "data/voice/spectogram/dev/"
 
 
 def load_img(path: str) -> np.ndarray:
@@ -24,19 +28,15 @@ def load_rec(path: str):
     return scipy.io.wavfile.read(path)
 
 
-def load_data(path: str, ext: str, with_target: bool=True) -> tuple:
+def load_data(path: str, ext: str, with_target: bool=True):
     classes = glob.glob(path + "*")
-    classes2 = glob.glob(DEV_DIR + "*")
     
     data = []
     if with_target:
         targets = []
         sessions = []
-        index = 0
-    for c, c2 in zip(classes, classes2):
-        for obj, obj2 in zip(glob.glob(c + "/*." + ext), glob.glob(c2 + "/*.wav")):
-            
-            print(obj, "==", obj2)
+    for c, t in zip(classes, os.listdir(path)):
+        for obj in glob.glob(c + "/*." + ext):
 
             if ext == "png":
                 data.append(load_img(obj))
@@ -44,11 +44,8 @@ def load_data(path: str, ext: str, with_target: bool=True) -> tuple:
                 data.append(load_rec(obj))
 
             if with_target:
-                targets.append(index)
+                targets.append(t)
                 sessions.append(obj[len(c) + 6:len(c) + 8])
-
-        if with_target:
-            index += 1
 
     if with_target:
         return data, targets, sessions
@@ -63,7 +60,15 @@ def load_npy(path: str) -> np.ndarray:
 
     return np.asarray(data)
 
+def load_spectog(path: str) -> np.ndarray:
+    data = []
+    for file in glob.glob(path + "*"):
+        data.append(np.load(file, allow_pickle=True))
+
+    return np.asarray(data)
+
 
 if __name__ == "__main__":
-    load_data(TRAIN_DIR, REC)
+    #load_spectog(SPECTOG_DEV_VOICE)
+    load_data(TRAIN_DIR, ext=REC)
     #load_npy(TRAIN_VOICE_NPY)
