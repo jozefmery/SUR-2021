@@ -1,3 +1,4 @@
+import os
 import glob
 import PIL.Image
 import scipy.io.wavfile
@@ -12,39 +13,39 @@ TRAIN_DIR = BASE_DIR + "train/"
 REC = "wav"
 FACE = "png"
 
+SIGNAL_TRAIN_VOICE = "data/voice/signal/train/"
+SIGNAL_DEV_VOICE = "data/voice/signal/dev/"
+
+SPECTOG_TRAIN_VOICE = "data/voice/spectogram/train/"
+SPECTOG_DEV_VOICE = "data/voice/spectogram/dev/"
+
 
 def load_img(path: str) -> np.ndarray:
     return np.asarray(PIL.Image.open(path).resize((160, 160)))
 
-def load_rec(path: str) -> np.ndarray:
-    return np.asarray(scipy.io.wavfile.read(path)[1])
 
-def load_data(path: str, ext: str, with_target: bool=True) -> tuple:
+def load_rec(path: str):
+    return scipy.io.wavfile.read(path)
+
+
+def load_data(path: str, ext: str, with_target: bool=True):
     classes = glob.glob(path + "*")
     
     data = []
     if with_target:
         targets = []
         sessions = []
-        index = 0
-    for c in classes:
-        cls = {"data": [], "target": [], "session": []}
+    for c, t in zip(classes, os.listdir(path)):
         for obj in glob.glob(c + "/*." + ext):
-            
+
             if ext == "png":
-                cls["data"].append(load_img(obj))
+                data.append(load_img(obj))
             elif ext == "wav":
-                cls["data"].append(load_rec(obj))
+                data.append(load_rec(obj))
 
             if with_target:
-                cls["target"].append(index)
-                cls["session"].append(obj[len(c) + 6:len(c) + 8])
-
-        data.append(cls["data"])
-        if with_target:
-            targets.append(cls["target"])
-            sessions.append(cls["session"])
-            index += 1
+                targets.append(t)
+                sessions.append(obj[len(c) + 6:len(c) + 8])
 
     if with_target:
         return data, targets, sessions
@@ -52,5 +53,22 @@ def load_data(path: str, ext: str, with_target: bool=True) -> tuple:
         return data
 
 
+def load_npy(path: str) -> np.ndarray:
+    data = []
+    for file in glob.glob(path + "*"):
+        data.append(np.load(file))
+
+    return np.asarray(data)
+
+def load_spectog(path: str) -> np.ndarray:
+    data = []
+    for file in glob.glob(path + "*"):
+        data.append(np.load(file, allow_pickle=True))
+
+    return np.asarray(data)
+
+
 if __name__ == "__main__":
-    load_data(TRAIN_DIR, REC)
+    #load_spectog(SPECTOG_DEV_VOICE)
+    load_data(TRAIN_DIR, ext=REC)
+    #load_npy(TRAIN_VOICE_NPY)
