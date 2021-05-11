@@ -1,74 +1,78 @@
+from enum import Enum
 import os
 import glob
+import numpy as np
 import PIL.Image
 import scipy.io.wavfile
-import numpy as np
 
+class Category(Enum):
+  # values represent the directory name
+  TRAIN = "train"
+  DEV   = "dev"
+  EVAL  = "eval"
 
-BASE_DIR = "dataset/"
-DEV_DIR = BASE_DIR + "dev/"
-EVAL_DIR = BASE_DIR + "eval/"
-TRAIN_DIR = BASE_DIR + "train/"
+class System(Enum):
+  # values match the positional argument, see main.py - parse_arguments
+  FACE  = "face"
+  VOICE = "voice"
 
-REC = "wav"
-FACE = "png"
+_SYS_TO_FILE_EXT = {
+  System.FACE:  ".png",
+  System.VOICE: ".wav"
+}
 
-SIGNAL_TRAIN_VOICE = "data/voice/signal/train/"
-SIGNAL_DEV_VOICE = "data/voice/signal/dev/"
+def _load_image(path: str):
+  # resize images to a known fixed size
+  return np.asarray(PIL.Image.open(path).resize((160, 160)))
 
-SPECTOG_TRAIN_VOICE = "data/voice/spectogram/train/"
-SPECTOG_DEV_VOICE = "data/voice/spectogram/dev/"
+def _load_sound(path: str):
+  # read returns (sample rate, data)
+  # and the sample reate is ignored
+  return np.asarray(scipy.io.wavfile.read(path)[1])
 
+def _find_files(path: str, system: System):
+  # create the pattern using the system type mapped to a file extension
+  return glob.glob(os.path.join(path, "*" + _SYS_TO_FILE_EXT[system]))
 
-def load_img(path: str) -> np.ndarray:
-    return np.asarray(PIL.Image.open(path).resize((160, 160)))
+_TRANSFORM_FN_MAPPER = {
+  System.FACE:  _load_image,
+  System.VOICE: _load_sound
+}
 
+def _load_files(paths: "list[str]", system: System):
+  return np.array([_TRANSFORM_FN_MAPPER[system](p) for p in paths])
 
-def load_rec(path: str):
-    return scipy.io.wavfile.read(path)
+def _load_dev_train_data(path: str, system: System):
+  # discover target directories
+  target_dirs = os.listdir(path)
+  # find all files
+  path_groups = [_find_files(os.path.join(path, target_dir), system) for target_dir in target_dirs]
+  # load all files
+  grouped_data = [_load_files(group, system) for group in path_groups]
+  # create targets
+  grouped_targets = [np.full(group.shape[0], int(target)) for group, target in zip(grouped_data, target_dirs)]
+  # flatten groups
+  return np.concatenate(grouped_data), np.concatenate(grouped_targets)
 
+def _load_eval_data(path: str, system: System):
+  # create the pattern using the system type mapped to a file extension
+  pattern = os.path.join(path, "*" + _SYS_TO_FILE_EXT[system])
+  # discover matching file paths
+  paths = glob.glob(pattern)
+  # load data 
+  data = np.array([_TRANSFORM_FN_MAPPER[system](p) for p in paths])
+  # extract ids from filenames
+  ids = np.array([os.path.basename(p).split(".")[0] for p in paths])
+  return data, ids
 
-def load_data(path: str, ext: str, with_target: bool=True):
-    classes = glob.glob(path + "*")
-    
-    data = []
-    if with_target:
-        targets = []
-        sessions = []
-    for c, t in zip(classes, os.listdir(path)):
-        for obj in glob.glob(c + "/*." + ext):
+_LOADER_FN_MAPPER = {
+  Category.TRAIN:  _load_dev_train_data,
+  Category.DEV:    _load_dev_train_data,
+  Category.EVAL:   _load_eval_data, 
+}
 
-            if ext == "png":
-                data.append(load_img(obj))
-            elif ext == "wav":
-                data.append(load_rec(obj))
-
-            if with_target:
-                targets.append(t)
-                sessions.append(obj[len(c) + 6:len(c) + 8])
-
-    if with_target:
-        return data, targets, sessions
-    else:
-        return data
-
-
-def load_npy(path: str) -> np.ndarray:
-    data = []
-    for file in glob.glob(path + "*"):
-        data.append(np.load(file))
-
-    return np.asarray(data)
-
-def load_spectog(path: str) -> np.ndarray:
-    data = []
-    for file in glob.glob(path + "*"):
-        data.append(np.load(file, allow_pickle=True))
-
-    return np.asarray(data)
-
-
-if __name__ == "__main__":
-    #load_spectog(SPECTOG_DEV_VOICE)
-    load_data(TRAIN_DIR, ext=REC)
-    #load_npy(TRAIN_VOICE_NPY)
+def load(base_path: str, category: Category, system: System):
+  # create path using the Category enum value
+  # no need to map enum values
+  path = os.path.join(base_path, category.value)
+  return _LOADER_FN_MAPPER[category](path, system)
