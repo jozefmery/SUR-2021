@@ -38,7 +38,7 @@ def load_data(path: str, ext: str):
 def load_models(path: str):
     
     targets = os.listdir(path)
-    models = [pickle.load(open(glob.glob(path + "/*.gmm")[0], 'rb')) for path in glob.glob(path + "\\*")]
+    models = [pickle.load(open(glob.glob(path + "/*.gmm")[0], "rb")) for path in glob.glob(path + "\\*")]
 
     return models, targets
 
