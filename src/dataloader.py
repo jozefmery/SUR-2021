@@ -75,4 +75,8 @@ def load(base_path: str, category: Category, system: System):
   # create path using the Category enum value
   # no need to map enum values
   path = os.path.join(base_path, category.value)
-  return _LOADER_FN_MAPPER[category](path, system)
+  
+  try:
+    return _LOADER_FN_MAPPER[category](path, system)
+  except FileNotFoundError as e:
+    raise RuntimeError("Failed to load data: " + str(e))
