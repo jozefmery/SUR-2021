@@ -21,12 +21,12 @@ def train():
             else:
                 features = np.vstack((features, feature))
         
-        gmm = GaussianMixture(n_components=16, max_iter=200, covariance_type='tied', n_init=3)
+        gmm = GaussianMixture(n_components=16, max_iter=200, covariance_type="tied", n_init=3)
         gmm.fit(features)
  
         os.makedirs(os.path.join(utils.MODEL_DIR, target), exist_ok=True)
-        pickle.dump(gmm, open(os.path.join(utils.MODEL_DIR, target, "speaker_" + target + ".gmm"), 'wb'))
-        print('+ modeling completed for speaker:', target)
+        pickle.dump(gmm, open(os.path.join(utils.MODEL_DIR, target, "speaker_" + target + ".gmm"), "wb"))
+        print("+ modeling completed for speaker:", target)
 
 
 def eval():
