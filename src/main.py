@@ -1,9 +1,11 @@
-
-from utils import set_tf_loglevel_warn, enable_xla_devices
+from utils import set_tf_loglevel_warn
 
 # needs to be called before importing tensorflow
 set_tf_loglevel_warn()
 
+import utils
+import face_classifier
+import dataloader
 import argparse
 import os
 import sys
@@ -50,19 +52,79 @@ def parse_arguments():
     help="Directory, where the results will be saved if eval action is chosen.")
 
   parser.add_argument("--action", default="eval", choices=["eval", "train"], help="Evaluate an existing model (default) or begin training a new model.")
-  parser.add_argument("--category", default="eval", choices=["eval", "train", "dev"], help="Choose dataset category to perform the selected action on. Eval by default. \nNote that training is not possible on the eval category.")
   
-  return parser.parse_args()
- 
+  args = parser.parse_args()
+  # convert string to enum variant
+  args.system   = dataloader.System(args.system)
+  return args
+
+def train_face(train_data, dev_data, models_path):
+  # train model
+  model, score = face_classifier.train_svm(train_data, dev_data, models_path)
+  # save trained model
+  utils.save_model(os.path.join(models_path, "face", "model.svm"), model)
+  return score
+
+def train_voice(train_data, dev_data, models_path):
+  # TODO 
+  return 0
+
+def eval_face(data, models_path):
+  model = utils.load_model(os.path.join(models_path, "face", "model.svm"))
+  return face_classifier.predict(model, data, models_path)
+
+def eval_voice(data, models_path):
+  # TODO
+  pass
+
+SYS_TRAINING_MAPPER = {
+
+  dataloader.System.FACE:   train_face,
+  dataloader.System.VOICE:  train_voice,
+}
+
+SYS_EVAL_MAPPER = {
+
+  dataloader.System.FACE:   eval_face,
+  dataloader.System.VOICE:  eval_voice,
+}
+
+def train(args):
+  print("Training the " + args.system.value + " system model...")
+  # load training and dev data
+  train_data = dataloader.load(args.dataset, dataloader.Category.TRAIN, args.system)
+  dev_data = dataloader.load(args.dataset, dataloader.Category.DEV, args.system)
+  # train the model and get its score on the dev data category
+  score = SYS_TRAINING_MAPPER[args.system](train_data, dev_data, args.models)
+  print("Finished training the " + args.system.value + " system, score on dev data: {:.2f}%".format(score * 100))
+
+def eval(args):
+  print("Evaluating the " + args.system.value + " system...")
+  # load data and make predictions
+  data, ids = dataloader.load(args.dataset, dataloader.Category.EVAL, args.system)
+  predictions = SYS_EVAL_MAPPER[args.system](data, args.models)
+  # write results
+  results_path = os.path.join(args.results, args.system.value, "evaluation.txt")
+  utils.write_results(results_path, ids, predictions)
+
+  print("Finished evaluating the " + args.system.value + " system.")
+
+ACTION_MAPPER = {
+
+  "eval": eval,
+  "train": train
+}
+
 def main():
   
   try:
-    enable_xla_devices()
+
+    utils.enable_xla_devices()
 
     args = parse_arguments()
-    print(args)
-    # data, targets = dataloader.load(DEFAULT_DATASET_PATH, dataloader.DataClass.TRAIN, dataloader.System.FACE)
 
+    ACTION_MAPPER[args.action](args)
+    
   except RuntimeError as e:
     
     print("Error: " + str(e))
