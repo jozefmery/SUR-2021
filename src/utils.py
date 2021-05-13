@@ -43,3 +43,6 @@ def write_results(path, ids, predictions):
 
   with open(path, "w") as f:
     f.write(results)
+
+def identity(arg, *args):
+  return (arg,) + args if args else arg
