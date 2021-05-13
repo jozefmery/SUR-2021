@@ -5,6 +5,7 @@ import numpy as np
 import PIL.Image
 import scipy.io.wavfile
 import itertools
+from utils import identity
 
 class Category(Enum):
   # values represent the directory name
@@ -46,6 +47,21 @@ _TRANSFORM_FN_MAPPER = {
 def _load_files(paths: "list[str]", system: System):
   return [_TRANSFORM_FN_MAPPER[system](p) for p in paths]
 
+def _degroup_data(data_and_targets):
+  # extract tuple members
+  grouped_data = data_and_targets[0]
+  group_targets = data_and_targets[1]
+  # create target for every sample
+  grouped_targets = [[target] * len(group) for group, target in zip(grouped_data, group_targets)]
+  # flatten groups
+  return _concat(grouped_data), _concat(grouped_targets)
+
+_SYS_GROUP_MAPPER = {
+
+  System.VOICE: identity,
+  System.FACE: _degroup_data
+}
+
 def _load_dev_train_data(path: str, system: System):
   # discover target directories
   target_dirs = os.listdir(path)
@@ -54,9 +70,9 @@ def _load_dev_train_data(path: str, system: System):
   # load all files
   grouped_data = [_load_files(group, system) for group in path_groups]
   # create targets
-  grouped_targets = [[int(target)] * len(group) for group, target in zip(grouped_data, target_dirs)]
-  # flatten groups
-  return _concat(grouped_data), _concat(grouped_targets)
+  group_targets = [int(target) for target in target_dirs]
+  # degroup the data for the face system
+  return _SYS_GROUP_MAPPER[system]((grouped_data, group_targets))
 
 def _load_eval_data(path: str, system: System):
   # create the pattern using the system type mapped to a file extension
@@ -79,7 +95,6 @@ def load(base_path: str, category: Category, system: System):
   # create path using the Category enum value
   # no need to map enum values
   path = os.path.join(base_path, category.value)
-  
   try:
     return _LOADER_FN_MAPPER[category](path, system)
   except FileNotFoundError as e:
