@@ -1,3 +1,11 @@
+# File:     utils.py
+# Date:     13.05.2021
+# Project:  SUR-2021
+# Authors:  Dovičic Denis     - xdovic01@vutbr.cz
+#           Hudecová Patrícia - xhudec30@vutbr.cz
+#           Méry Jozef        - xmeryj00@vutbr.cz
+# Description: Miscellaneous utility items.
+
 import os
 import logging as log
 import pickle

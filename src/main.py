@@ -1,3 +1,11 @@
+# File:     main.py
+# Date:     13.05.2021
+# Project:  SUR-2021
+# Authors:  Dovičic Denis     - xdovic01@vutbr.cz
+#           Hudecová Patrícia - xhudec30@vutbr.cz
+#           Méry Jozef        - xmeryj00@vutbr.cz
+# Description: Argument parsing and entry point.   
+
 from utils import set_tf_loglevel_warn
 
 # needs to be called before importing tensorflow

@@ -1,3 +1,11 @@
+# File:     face_classifier.py
+# Date:     13.05.2021
+# Project:  SUR-2021
+# Authors:  Dovičic Denis     - xdovic01@vutbr.cz
+#           Hudecová Patrícia - xhudec30@vutbr.cz
+#           Méry Jozef        - xmeryj00@vutbr.cz
+# Description: Face classification related items.  
+
 import keras.models
 import numpy as np
 from sklearn.preprocessing import Normalizer

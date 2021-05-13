@@ -1,3 +1,11 @@
+# File:     voice_classifier.py
+# Date:     13.05.2021
+# Project:  SUR-2021
+# Authors:  Dovičic Denis     - xdovic01@vutbr.cz
+#           Hudecová Patrícia - xhudec30@vutbr.cz
+#           Méry Jozef        - xmeryj00@vutbr.cz
+# Description: Voice classification related items.  
+
 import python_speech_features
 from sklearn import preprocessing
 import numpy as np
