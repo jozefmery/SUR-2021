@@ -27,7 +27,7 @@ def _load_image(path: str):
 
 def _load_sound(path: str):
   # read returns (sample rate, data)
-  # and the sample reate is ignored
+  # and the sample rate is ignored
   return np.asarray(scipy.io.wavfile.read(path)[1])
 
 def _find_files(path: str, system: System):
