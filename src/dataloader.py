@@ -4,8 +4,7 @@ import glob
 import numpy as np
 import PIL.Image
 import scipy.io.wavfile
-import itertools
-from utils import identity
+from utils import identity, concat
 
 class Category(Enum):
   # values represent the directory name
@@ -22,9 +21,6 @@ _SYS_TO_FILE_EXT = {
   System.FACE:  ".png",
   System.VOICE: ".wav"
 }
-
-def _concat(lists):
-  return list(itertools.chain(*lists))
 
 def _load_image(path: str):
   # resize images to a known fixed size
@@ -47,19 +43,19 @@ _TRANSFORM_FN_MAPPER = {
 def _load_files(paths: "list[str]", system: System):
   return [_TRANSFORM_FN_MAPPER[system](p) for p in paths]
 
-def _degroup_data(data_and_targets):
+def degroup_data(data_and_targets):
   # extract tuple members
   grouped_data = data_and_targets[0]
   group_targets = data_and_targets[1]
   # create target for every sample
   grouped_targets = [[target] * len(group) for group, target in zip(grouped_data, group_targets)]
   # flatten groups
-  return _concat(grouped_data), _concat(grouped_targets)
+  return concat(grouped_data), concat(grouped_targets)
 
 _SYS_GROUP_MAPPER = {
 
   System.VOICE: identity,
-  System.FACE: _degroup_data
+  System.FACE: degroup_data
 }
 
 def _load_dev_train_data(path: str, system: System):

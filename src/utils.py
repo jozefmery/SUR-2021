@@ -2,6 +2,7 @@ import os
 import logging as log
 import pickle
 from pathlib import Path
+import itertools
 
 # call before importing tf or keras
 def set_tf_loglevel_warn():
@@ -46,3 +47,6 @@ def write_results(path, ids, predictions):
 
 def identity(arg, *args):
   return (arg,) + args if args else arg
+
+def concat(lists):
+  return list(itertools.chain(*lists))
