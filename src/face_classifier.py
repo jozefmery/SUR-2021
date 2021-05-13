@@ -40,18 +40,16 @@ def _facenet_model_path(models_base_path: str):
 def train_svm(train_data, dev_data, models_base_path):
   facenet_path = _facenet_model_path(models_base_path)
   # train the model using the training data
-  train_embedding = _images_to_embeddings(facenet_path, train_data[0])
+  embeddings = _images_to_embeddings(facenet_path, train_data[0])
   model = SVC(kernel="linear")
-  model.fit(train_embedding, train_data[1])
+  model.fit(embeddings, train_data[1])
   # evaluate the trained model using the dev data
-  dev_embeddings = _images_to_embeddings(facenet_path, dev_data[0])
-  prediction = model.predict(dev_embeddings)
-  
+  prediction = predict(model, dev_data[0], models_base_path)
   score = accuracy_score(dev_data[1], prediction)
+  
   return model, score
 
 def predict(model, images, models_base_path):
   facenet_path = _facenet_model_path(models_base_path)
   embeddings = _images_to_embeddings(facenet_path, images)
-  
   return model.predict(embeddings)
