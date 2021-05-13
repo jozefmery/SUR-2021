@@ -4,6 +4,7 @@ import glob
 import numpy as np
 import PIL.Image
 import scipy.io.wavfile
+import itertools
 
 class Category(Enum):
   # values represent the directory name
@@ -21,14 +22,17 @@ _SYS_TO_FILE_EXT = {
   System.VOICE: ".wav"
 }
 
+def _concat(lists):
+  return list(itertools.chain(*lists))
+
 def _load_image(path: str):
   # resize images to a known fixed size
   return np.asarray(PIL.Image.open(path).resize((160, 160)))
 
 def _load_sound(path: str):
-  # read returns (sample rate, data)
-  # and the sample rate is ignored
-  return np.asarray(scipy.io.wavfile.read(path)[1])
+  # read audio and convert its data to a numpy array
+  rate, audio = scipy.io.wavfile.read(path)
+  return np.asarray(audio), rate
 
 def _find_files(path: str, system: System):
   # create the pattern using the system type mapped to a file extension
@@ -40,7 +44,7 @@ _TRANSFORM_FN_MAPPER = {
 }
 
 def _load_files(paths: "list[str]", system: System):
-  return np.array([_TRANSFORM_FN_MAPPER[system](p) for p in paths])
+  return [_TRANSFORM_FN_MAPPER[system](p) for p in paths]
 
 def _load_dev_train_data(path: str, system: System):
   # discover target directories
@@ -50,9 +54,9 @@ def _load_dev_train_data(path: str, system: System):
   # load all files
   grouped_data = [_load_files(group, system) for group in path_groups]
   # create targets
-  grouped_targets = [np.full(group.shape[0], int(target)) for group, target in zip(grouped_data, target_dirs)]
+  grouped_targets = [[int(target)] * len(group) for group, target in zip(grouped_data, target_dirs)]
   # flatten groups
-  return np.concatenate(grouped_data), np.concatenate(grouped_targets)
+  return _concat(grouped_data), _concat(grouped_targets)
 
 def _load_eval_data(path: str, system: System):
   # create the pattern using the system type mapped to a file extension
@@ -60,9 +64,9 @@ def _load_eval_data(path: str, system: System):
   # discover matching file paths
   paths = glob.glob(pattern)
   # load data 
-  data = np.array([_TRANSFORM_FN_MAPPER[system](p) for p in paths])
+  data = [_TRANSFORM_FN_MAPPER[system](p) for p in paths]
   # extract ids from filenames
-  ids = np.array([os.path.basename(p).split(".")[0] for p in paths])
+  ids = [os.path.basename(p).split(".")[0] for p in paths]
   return data, ids
 
 _LOADER_FN_MAPPER = {
