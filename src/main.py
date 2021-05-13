@@ -5,6 +5,7 @@ set_tf_loglevel_warn()
 
 import utils
 import face_classifier
+import voice_classifier
 import dataloader
 import argparse
 import os
@@ -55,7 +56,7 @@ def parse_arguments():
   
   args = parser.parse_args()
   # convert string to enum variant
-  args.system   = dataloader.System(args.system)
+  args.system = dataloader.System(args.system)
   return args
 
 def train_face(train_data, dev_data, models_path):
@@ -66,16 +67,19 @@ def train_face(train_data, dev_data, models_path):
   return score
 
 def train_voice(train_data, dev_data, models_path):
-  # TODO 
-  return 0
+  # train model
+  model, score = voice_classifier.train_gmms(train_data, dev_data)
+  # save trained model
+  utils.save_model(os.path.join(models_path, "voice", "model.gmms"), model)
+  return score
 
 def eval_face(data, models_path):
   model = utils.load_model(os.path.join(models_path, "face", "model.svm"))
   return face_classifier.predict(model, data, models_path)
 
 def eval_voice(data, models_path):
-  # TODO
-  pass
+  model = utils.load_model(os.path.join(models_path, "voice", "model.gmms"))
+  return voice_classifier.predict(model, data)
 
 SYS_TRAINING_MAPPER = {
 
@@ -116,17 +120,12 @@ ACTION_MAPPER = {
 }
 
 def main():
-  
   try:
-
     utils.enable_xla_devices()
-
     args = parse_arguments()
-
     ACTION_MAPPER[args.action](args)
-    
-  except RuntimeError as e:
-    
+
+  except RuntimeError as e:    
     print("Error: " + str(e))
 
 if __name__ == "__main__":
