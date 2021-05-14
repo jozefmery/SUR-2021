@@ -12,8 +12,8 @@ from utils import set_tf_loglevel_warn
 set_tf_loglevel_warn()
 
 import utils
-import face_classifier
-import voice_classifier
+import face_classifier_facenet as face_classifier
+import voice_classifier_gmms as voice_classifier
 import dataloader
 import argparse
 import os
